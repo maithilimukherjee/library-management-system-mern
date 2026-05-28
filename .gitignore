@@ -1,0 +1,14 @@
+# Dependency directories
+node_modules/
+
+# Local environment variables (CRITICAL)
+.env
+.env.local
+
+# Production build folders (if you add frontend later)
+dist/
+build/
+
+# IDE/System files
+.DS_Store
+.vscode/
