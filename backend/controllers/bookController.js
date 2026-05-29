@@ -2,9 +2,6 @@ import Book from "../models/Book.js";
 import Borrowal from "../models/Borrowal.js";
 import Member from "../models/Member.js";
 
-// ==========================================
-//             BOOK CORE OPERATIONS
-// ==========================================
 
 export const addNewBook = async (req, res) => { 
     try {
@@ -117,45 +114,7 @@ export const returnBook = async (req, res) => {
     }
 };
 
-// ==========================================
-//         ADMIN ACCOUNT STATUS MANAGEMENT
-// ==========================================
 
-// --- SUSPEND ACCOUNT ---
-export const suspendMembership = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ message: "Email is required to locate the member account." });
-        }
-
-        const member = await Member.findOne({ email });
-        if (!member) {
-            return res.status(404).json({ message: "Member account not found." });
-        }
-
-        // Rule check based on true DB values
-        if (member.fine <= 100) {
-            return res.status(400).json({ 
-                message: `Account cannot be suspended. Fine balance (${member.fine}) is under the threshold.` 
-            });
-        }
-
-        member.memStatus = "suspended";
-        await member.save();
-
-        return res.status(200).json({
-            message: "Membership suspended successfully due to outstanding fine balances.",
-            member
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
-// --- CANCEL ACCOUNT ---
 export const cancelMembership = async (req, res) => {
     try {
         const { email } = req.body;
@@ -189,40 +148,6 @@ export const cancelMembership = async (req, res) => {
     }
 };
 
-// --- REACTIVATE ACCOUNT ---
-export const reactivateMembership = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ message: "Email field is required." });
-        }
-
-        const member = await Member.findOne({ email });
-        if (!member) {
-            return res.status(404).json({ message: "Member record not found." });
-        }
-
-        if (member.fine > 0) {
-            return res.status(400).json({ 
-                message: `Reactivation denied. User must pay entire fine. Remaining debt: ₹${member.fine}` 
-            });
-        }
-
-        member.memStatus = "active";
-        await member.save();
-
-        return res.status(200).json({
-            message: "Account restored to active standing successfully.",
-            member
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
-// --- SETTLE FINES ---
 export const updateFine = async (req, res) => {
     try {
         const { email, amountPaid } = req.body;
