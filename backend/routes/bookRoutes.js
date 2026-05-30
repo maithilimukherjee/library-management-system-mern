@@ -3,21 +3,16 @@ import {
     addNewBook, 
     lendBook, 
     returnBook, 
-    cancelMembership, 
     updateFine 
 } from "../controllers/bookController.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js"; // Import guards
 
 const router = express.Router();
 
-// Inventory Management
-router.post("/add", addNewBook);
-
-// Transactional Operations
-router.post("/lend", lendBook);
-router.post("/return", returnBook);
-
-// Member Lifecycle Operations
-router.post("/cancel", cancelMembership);
-router.post("/pay-fine", updateFine);
+// All operational routes now require a valid token and an admin role
+router.post("/add", protect, adminOnly, addNewBook);
+router.post("/lend", protect, adminOnly, lendBook);
+router.post("/return", protect, adminOnly, returnBook);
+router.post("/pay-fine", protect, adminOnly, updateFine);
 
 export default router;

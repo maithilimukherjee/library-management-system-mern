@@ -1,63 +1,14 @@
+import jwt from "jsonwebtoken"; // Added JWT import
 import Member from "../models/Member.js";
 import Book from "../models/Book.js";
 import Borrowal from "../models/Borrowal.js";
+import Admin from "../models/Admin.js"; // Ensured Admin model import is present
 
+// ==========================================
+//          SYSTEM-WIDE VISIBILITY
+// ==========================================
 
-
-export const adminRegister = async (req, res) => {
-    try {
-        // Fixed: camelCase matching schema 'hireDate'
-        const { name, email, hireDate } = req.body; 
-
-        if (!name || !email || !hireDate) {
-            return res.status(400).json({ message: "Name, email, and hireDate are required fields" });
-        }
-
-        const oldAdmin = await Admin.findOne({ email });
-        if (oldAdmin) {
-            return res.status(400).json({ message: "Admin already exists. Log in instead." });
-        }
-
-        const newAdmin = await Admin.create({ name, email, hireDate });
-
-        // Fixed: Combined into a single valid JSON object wrapper
-        return res.status(201).json({ 
-            message: "Admin registered successfully", 
-            admin: newAdmin 
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
-
-export const adminLogin = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ message: "Email is required." });
-        }
-
-        const existingAdmin = await Admin.findOne({ email });
-        if (!existingAdmin) {
-            // Kept this legendary response intact
-            return res.status(403).json({ message: "brother u dont work here lol" }); 
-        }
-
-        // Fixed: Combined into a single valid JSON object wrapper
-        return res.status(200).json({ 
-            message: "Welcome back admin", 
-            admin: existingAdmin 
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
-
+// --- GET ALL MEMBERS ---
 export const getAllMembers = async (req, res) => {
     try {
         const members = await Member.find({});
@@ -86,7 +37,6 @@ export const getAllBooks = async (req, res) => {
 // --- GET ALL BORROWAL LOGS (WITH RELATIONSHIPS) ---
 export const getAllTransactions = async (req, res) => {
     try {
-        // .populate replaces the ObjectIds with the actual documents from other collections
         const logs = await Borrowal.find({})
             .populate("bookId", "name isbn avStatus")
             .populate("memberId", "name email memStatus");
@@ -163,6 +113,69 @@ export const reactivateMembership = async (req, res) => {
         return res.status(200).json({
             message: "Account restored to active standing successfully.",
             member
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// ==========================================
+//         ADMIN IDENTITY ACCESS
+// ==========================================
+
+// --- ADMIN REGISTRATION ---
+export const adminRegister = async (req, res) => {
+    try {
+        const { name, email, hireDate } = req.body; 
+
+        if (!name || !email || !hireDate) {
+            return res.status(400).json({ message: "Name, email, and hireDate are required fields" });
+        }
+
+        const oldAdmin = await Admin.findOne({ email });
+        if (oldAdmin) {
+            return res.status(400).json({ message: "Admin already exists. Log in instead." });
+        }
+
+        const newAdmin = await Admin.create({ name, email, hireDate });
+
+        return res.status(201).json({ 
+            message: "Admin registered successfully", 
+            admin: newAdmin 
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// --- ADMIN LOGIN ---
+export const adminLogin = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required." });
+        }
+
+        const existingAdmin = await Admin.findOne({ email });
+        if (!existingAdmin) {
+            return res.status(403).json({ message: "brother u dont work here lol" }); 
+        }
+
+        // 1. Sign the admin-scoped token
+        const token = jwt.sign(
+            { id: existingAdmin._id, role: "admin" },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        // 2. Return the token signature with the admin object wrapper
+        return res.status(200).json({ 
+            message: "Welcome back admin", 
+            token,
+            admin: existingAdmin 
         });
 
     } catch (error) {

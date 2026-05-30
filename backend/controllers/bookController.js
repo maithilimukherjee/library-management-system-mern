@@ -115,39 +115,6 @@ export const returnBook = async (req, res) => {
 };
 
 
-export const cancelMembership = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ message: "Email is required." });
-        }
-
-        const member = await Member.findOne({ email });
-        if (!member) {
-            return res.status(404).json({ message: "Member not found." });
-        }
-
-        // Prevent abandonment of accounts with unpaid system debts
-        if (member.fine > 0) {
-            return res.status(400).json({ 
-                message: `Account cannot be cancelled. Please settle outstanding fine of ₹${member.fine} first.` 
-            });
-        }
-
-        member.memStatus = "cancelled";
-        await member.save();
-
-        return res.status(200).json({
-            message: "Membership cancelled successfully. Historical parameters retained.",
-            member
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
 export const updateFine = async (req, res) => {
     try {
         const { email, amountPaid } = req.body;

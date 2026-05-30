@@ -1,11 +1,7 @@
+import jwt from "jsonwebtoken"; // Added JWT import
 import Member from "../models/Member.js";
 import Admin from "../models/Admin.js";
 
-// ==========================================
-//            MEMBER ENDPOINTS
-// ==========================================
-
-// --- MEMBER REGISTRATION ---
 export const register = async (req, res) => {
     try {
         const { name, email } = req.body;
@@ -58,8 +54,17 @@ export const memberLogin = async (req, res) => {
             });
         }
 
+        // 1. Generate the JWT token with member privileges
+        const token = jwt.sign(
+            { id: member._id, role: "member" },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" } // Token stays active for 24 hours
+        );
+
+        // 2. Return response body carrying the signed token
         return res.status(200).json({
             message: "Login successful",
+            token, // Client will extract this to authorize future network actions
             member: {
                 id: member._id,
                 name: member.name,
@@ -73,7 +78,35 @@ export const memberLogin = async (req, res) => {
     }
 };
 
-// ==========================================
-//             ADMIN ENDPOINTS
-// ==========================================
+export const cancelMembership = async (req, res) => {
+    try {
+        const { email } = req.body;
 
+        if (!email) {
+            return res.status(400).json({ message: "Email is required." });
+        }
+
+        const member = await Member.findOne({ email });
+        if (!member) {
+            return res.status(404).json({ message: "Member not found." });
+        }
+
+        // Prevent abandonment of accounts with unpaid system debts
+        if (member.fine > 0) {
+            return res.status(400).json({ 
+                message: `Account cannot be cancelled. Please settle outstanding fine of ₹${member.fine} first.` 
+            });
+        }
+
+        member.memStatus = "cancelled";
+        await member.save();
+
+        return res.status(200).json({
+            message: "Membership cancelled successfully. Historical parameters retained.",
+            member
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
