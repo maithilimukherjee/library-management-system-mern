@@ -1,0 +1,79 @@
+.academia-register-container {
+    background-color: var(--espresso-deep);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.academia-register-box {
+    background-color: var(--espresso-dark);
+    border: 1px solid var(--vintage-bronze);
+    border-radius: 6px;
+    padding: 45px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    font-family: var(--literary-serif);
+}
+
+.academia-register-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.academia-register-header h2 {
+    color: var(--bg-parchment);
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin: 0 0 8px 0;
+}
+
+.academia-register-header p {
+    color: var(--bg-parchment);
+    opacity: 0.5;
+    font-size: 13px;
+    font-style: italic;
+    margin: 0;
+}
+
+.academia-register-footer {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--bg-parchment);
+    opacity: 0.7;
+}
+
+.academia-register-link {
+    color: var(--antique-gold);
+    text-decoration: none;
+    margin-left: 5px;
+    transition: opacity 0.2s;
+}
+
+.academia-register-link:hover {
+    text-decoration: underline;
+    opacity: 0.9;
+}
+
+/* System Feedback Banners */
+.academia-alert {
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.academia-alert-error {
+    background-color: #4a2424;
+    color: #e0a3a3;
+    border: 1px solid #6b3535;
+}
+.academia-alert-success {
+    background-color: #2a3d2a;
+    color: #a2cfa2;
+    border: 1px solid #3d5c3d;
+}
