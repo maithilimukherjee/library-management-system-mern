@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AdminDashboard from './pages/admin/AdminDashboard'; // Import the new Archivist Dashboard
 
 function App() {
   return (
@@ -14,35 +15,28 @@ function App() {
         {/* 2. Catch-all: Direct root visits down to the sign-in sheet */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* 3. Dashboard Route Placeholders (To be built next!) */}
+        {/* 3. Dashboard Routes */}
         <Route 
           path="/dashboard" 
           element={
-            <div style={{ backgroundColor: "#1c120c", color: "#f5edd6", height: "100vh", padding: "40px", fontFamily: "Georgia" }}>
+            <div style={{ backgroundColor: "var(--bg)", color: "var(--text-h)", height: "100vh", padding: "40px", fontFamily: "var(--heading)" }}>
               <h2>Reader Archive Dashboard</h2>
               <p>Welcome back. Coming up: Book searching catalog and self-cancellation portal.</p>
             </div>
           } 
         />
         
-        <Route 
-          path="/admin/dashboard" 
-          element={
-            <div style={{ backgroundColor: "#1c120c", color: "#f5edd6", height: "100vh", padding: "40px", fontFamily: "Georgia" }}>
-              <h2>Archivist Master Control</h2>
-              <p>Salutations, Admin. Coming up: Member lifecycle, logging view, and loan book controls.</p>
-            </div>
-          } 
-        />
+        {/* Live Archivist Master Control */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
         {/* 4. Handle 404 Missing Documents cleanly */}
         <Route 
           path="*" 
           element={
-            <div style={{ backgroundColor: "#1c120c", color: "#e0a3a3", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", fontFamily: "Georgia" }}>
+            <div style={{ backgroundColor: "var(--bg)", color: "#e0a3a3", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", fontFamily: "var(--heading)" }}>
               <h1>404: Document Missing</h1>
-              <p style={{ opacity: 0.6, fontStyle: "italic" }}>This volume does not exist within our records.</p>
-              <a href="/login" style={{ color: "#8c6d3e", marginTop: "20px" }}>Return to Ledger</a>
+              <p style={{ opacity: 0.8, fontStyle: "italic", fontFamily: "var(--sans)" }}>This volume does not exist within our records.</p>
+              <a href="/login" style={{ color: "var(--accent)", marginTop: "20px", textDecoration: "none", borderBottom: "1px solid var(--accent)" }}>Return to Ledger</a>
             </div>
           } 
         />
