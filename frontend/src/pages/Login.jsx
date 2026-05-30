@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import InputField from '../../components/InputField';
-import Button from '../../components/Button';
-import '../../styles/Login.css';
+import InputField from '../components/InputField';
+import Button from '../components/Button';
+import '../styles/Login.css';
 
 const Login = () => {
-  const [role, setRole] = useState('member'); // Toggle state between 'member' and 'admin'
+  const [role, setRole] = useState('member'); 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState({ error: '', success: '' });
   const [loading, setLoading] = useState(false);
@@ -15,7 +15,6 @@ const Login = () => {
     setLoading(true);
     setStatus({ error: '', success: '' });
 
-    // Dynamically target endpoints depending on the active portal role selector
     const targetUrl = role === 'admin' 
       ? 'https://lms-mern-p8qq.onrender.com/api/admin/login'
       : 'https://lms-mern-p8qq.onrender.com/api/auth/';
@@ -24,13 +23,11 @@ const Login = () => {
       const response = await axios.post(targetUrl, { email });
       const { token, message } = response.data;
 
-      // Commit security token credentials to browser cache storage
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
 
       setStatus({ error: '', success: `${message || "Access granted."} Synchronizing dashboard...` });
       
-      // Redirect behavior will handle actual routing next
       setTimeout(() => {
         window.location.href = role === 'admin' ? '/admin/dashboard' : '/dashboard';
       }, 1500);
@@ -72,7 +69,6 @@ const Login = () => {
           <p>Provide your electronic identifier to restore your session profile.</p>
         </div>
 
-        {/* Dynamic Alerts */}
         {status.error && <div className="academia-alert academia-alert-error">{status.error}</div>}
         {status.success && <div className="academia-alert academia-alert-success">{status.success}</div>}
 
@@ -96,12 +92,20 @@ const Login = () => {
           </div>
         </form>
 
-        {role === 'member' && (
-          <div className="academia-login-footer">
-            New to the library records? 
-            <a href="/register" className="academia-register-link">Add to roll</a>
-          </div>
-        )}
+        {/* Dynamic Footer based on Role */}
+        <div className="academia-login-footer">
+          {role === 'member' ? (
+            <>
+              New to the library records? 
+              <a href="/register" className="academia-register-link">Add to roll</a>
+            </>
+          ) : (
+            <>
+              Newly appointed archivist? 
+              <a href="/register" className="academia-register-link">Join the faculty</a>
+            </>
+          )}
+        </div>
 
       </div>
     </div>

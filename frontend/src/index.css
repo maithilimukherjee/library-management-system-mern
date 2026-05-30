@@ -1,22 +1,23 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* --- Dark Academia Design System tokens (Light Theme / Vintage Ledger) --- */
+  --bg: #f5edd6;           /* Warm antique parchment paper */
+  --text: #3d3225;         /* Faded vintage iron-gall ink */
+  --text-h: #1c120c;       /* Rich, deep espresso black */
+  --border: #dfd5be;       /* Soft vintage bookbinding crease line */
+  --code-bg: #eae0c7;      /* Margins of aged documents */
+  --accent: #8c6d3e;       /* Burnished antique gold */
+  --accent-bg: rgba(140, 109, 62, 0.08);
+  --accent-border: rgba(140, 109, 62, 0.4);
+  --social-bg: rgba(223, 213, 190, 0.4);
+  --shadow: rgba(28, 18, 12, 0.08) 0 10px 15px -3px, rgba(28, 18, 12, 0.04) 0 4px 6px -2px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* --- Literary Typography --- */
+  --sans: 'Georgia', 'Times New Roman', serif;   /* Literary serif style for primary body */
+  --heading: 'Georgia', 'Times New Roman', serif;/* Unified classic aesthetic */
+  --mono: 'Courier New', Courier, monospace;     /* Typewriter ink aesthetic for data streams */
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  font: 18px/150% var(--sans);
+  letter-spacing: 0.02em;
   color-scheme: light dark;
   color: var(--text);
   background: var(--bg);
@@ -32,26 +33,27 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    /* --- Dark Academia Design System tokens (Dark Theme / Candlelit Vault) --- */
+    --bg: #16110c;           /* Deep obsidian espresso shadow */
+    --text: #c2b8a3;         /* Soft faded parchment gold script */
+    --text-h: #f5edd6;       /* Bright parchment paper highlight */
+    --border: #2d2319;       /* Dark hand-carved mahogany grain */
+    --code-bg: #1f1811;      /* Heavy shadows between shelves */
+    --accent: #d4af37;       /* Gleaming polished brass / gold leaf */
+    --accent-bg: rgba(212, 175, 55, 0.1);
+    --accent-border: rgba(212, 175, 55, 0.4);
+    --social-bg: rgba(45, 35, 25, 0.4);
+    --shadow: rgba(0, 0, 0, 0.5) 0 10px 20px -3px, rgba(0, 0, 0, 0.3) 0 6px 8px -2px;
   }
 
   #social .button-icon {
-    filter: invert(1) brightness(2);
+    filter: invert(0.9) sepia(0.3) brightness(1.1); /* Tweaked to blend perfectly with gold tones */
   }
 }
 
 body {
   margin: 0;
+  background-color: var(--bg);
 }
 
 #root {
@@ -64,6 +66,7 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  background-color: var(--bg);
 }
 
 h1,
@@ -71,28 +74,32 @@ h2 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
+  letter-spacing: 0.01em;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
+  font-size: 48px; /* Slightly scaled back for cleaner serif balance */
+  letter-spacing: -0.03em;
   margin: 32px 0;
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
   }
 }
+
 h2 {
   font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
+  line-height: 125%;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
   @media (max-width: 1024px) {
     font-size: 20px;
   }
 }
+
 p {
   margin: 0;
+  line-height: 155%;
 }
 
 code,
@@ -104,8 +111,9 @@ code,
 }
 
 code {
-  font-size: 15px;
-  line-height: 135%;
+  font-size: 14px;
+  line-height: 140%;
   padding: 4px 8px;
   background: var(--code-bg);
+  border: 1px solid var(--border); /* Framed like index references */
 }
