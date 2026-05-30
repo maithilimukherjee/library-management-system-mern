@@ -7,7 +7,7 @@ import {
     reactivateMembership,
     adminRegister, 
     adminLogin    
-} from "../controllers/AdminController.js";
+} from "../controllers/adminController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js"; // Imported guards
 
 const router = express.Router();
