@@ -6,7 +6,9 @@ import {
     suspendMembership,
     reactivateMembership,
     adminRegister, 
-    adminLogin    
+    adminLogin,
+    getPendingRequests,
+    respondToRequest    
 } from "../controllers/adminController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js"; // Imported guards
 
@@ -24,5 +26,8 @@ router.get("/transactions", protect, adminOnly, getAllTransactions);
 // 3. Protected Account Lifecycle System Adjustments
 router.post("/suspend", protect, adminOnly, suspendMembership);
 router.post("/reactivate", protect, adminOnly, reactivateMembership);
+
+router.get("/requests", protect, adminOnly, getPendingRequests);
+router.post("/requests/:id/respond", protect, adminOnly, respondToRequest);
 
 export default router;

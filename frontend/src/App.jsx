@@ -18,12 +18,6 @@ function App() {
         {/* 3. Dashboard Routes */}
         <Route 
           path="/dashboard" 
-          element={
-            <div style={{ backgroundColor: "var(--bg)", color: "var(--text-h)", height: "100vh", padding: "40px", fontFamily: "var(--heading)" }}>
-              <h2>Reader Archive Dashboard</h2>
-              <p>Welcome back. Coming up: Book searching catalog and self-cancellation portal.</p>
-            </div>
-          } 
         />
         
         {/* Live Archivist Master Control */}

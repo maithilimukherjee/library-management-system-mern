@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken"; // Added JWT import
 import Member from "../models/Member.js";
 import Book from "../models/Book.js";
 import Borrowal from "../models/Borrowal.js";
-import Admin from "../models/Admin.js"; // Ensured Admin model import is present
+import Admin from "../models/Admin.js";
+import BookRequest from "../models/BookRequest.js";
 
 // ==========================================
 //          SYSTEM-WIDE VISIBILITY
@@ -178,6 +179,52 @@ export const adminLogin = async (req, res) => {
             admin: existingAdmin 
         });
 
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get all pending book requests
+// @route   GET /api/admin/requests
+// @access  Protected (Admin only)
+export const getPendingRequests = async (req, res) => {
+    try {
+        // Find all pending requests and populate the member's email/name so the admin knows who asked
+        const requests = await BookRequest.find({ status: "pending" })
+            .populate("memberId", "name email")
+            .sort({ createdAt: 1 }); // Oldest first (queue style)
+
+        return res.status(200).json(requests);
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Respond to a book request
+// @route   POST /api/admin/requests/:id/respond
+// @access  Protected (Admin only)
+export const respondToRequest = async (req, res) => {
+    try {
+        const { status, adminReply } = req.body;
+        const requestId = req.params.id;
+
+        if (!["approved", "rejected"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status update." });
+        }
+
+        const request = await BookRequest.findById(requestId);
+        if (!request) {
+            return res.status(404).json({ message: "Request ticket not found." });
+        }
+
+        request.status = status;
+        request.adminReply = adminReply || "";
+        await request.save();
+
+        return res.status(200).json({
+            message: `Request marked as ${status}.`,
+            request
+        });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
