@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/admin/AdminDashboard'; // Import the new Archivist Dashboard
+import MemberDashboard from './pages/member/MemberDashboard';
 
 function App() {
   return (
@@ -15,12 +16,10 @@ function App() {
         {/* 2. Catch-all: Direct root visits down to the sign-in sheet */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* 3. Dashboard Routes */}
-        <Route 
-          path="/dashboard" 
-        />
+  
         
         {/* Live Archivist Master Control */}
+        <Route path="/dashboard" element={<MemberDashboard />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
         {/* 4. Handle 404 Missing Documents cleanly */}

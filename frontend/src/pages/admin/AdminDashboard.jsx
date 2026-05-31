@@ -8,11 +8,9 @@ import '../../styles/AdminDashboard.css';
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('inventory');
   
-  // Base API URLs - switch to your Render URL if testing live: 'https://lms-mern-p8qq.onrender.com/api/...'
   const API_BOOKS = 'https://lms-mern-p8qq.onrender.com/api/book'; 
   const API_ADMIN = 'https://lms-mern-p8qq.onrender.com/api/admin'; 
   
-  // Helper to always get the freshest token for requests
   const getAuthConfig = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
   });
@@ -21,6 +19,7 @@ const AdminDashboard = () => {
   const [books, setBooks] = useState([]);
   const [members, setMembers] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [requests, setRequests] = useState([]); // NEW: Request queue state
   
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
@@ -36,14 +35,13 @@ const AdminDashboard = () => {
     if (activeTab === 'inventory') fetchInventory();
     if (activeTab === 'members') fetchMembers();
     if (activeTab === 'transactions') fetchTransactions();
+    if (activeTab === 'requests') fetchRequests(); // NEW: Fetch requests
   }, [activeTab]);
 
   const fetchInventory = async () => {
     try {
       const res = await axios.get(`${API_ADMIN}/books`, getAuthConfig());
-      // Safely extract the array whether the backend returns [...] or { books: [...] }
-      const dataArray = Array.isArray(res.data) ? res.data : res.data.books || [];
-      setBooks(dataArray);
+      setBooks(Array.isArray(res.data) ? res.data : res.data.books || []);
     } catch (err) {
       setStatusMsg({ type: 'error', text: 'Failed to fetch ledger inventory.' });
       setBooks([]);
@@ -53,8 +51,7 @@ const AdminDashboard = () => {
   const fetchMembers = async () => {
     try {
       const res = await axios.get(`${API_ADMIN}/members`, getAuthConfig());
-      const dataArray = Array.isArray(res.data) ? res.data : res.data.members || [];
-      setMembers(dataArray);
+      setMembers(Array.isArray(res.data) ? res.data : res.data.members || []);
     } catch (err) {
       setStatusMsg({ type: 'error', text: 'Failed to fetch member registry.' });
       setMembers([]);
@@ -64,23 +61,49 @@ const AdminDashboard = () => {
   const fetchTransactions = async () => {
     try {
       const res = await axios.get(`${API_ADMIN}/transactions`, getAuthConfig());
-      const dataArray = Array.isArray(res.data) ? res.data : res.data.transactions || [];
-      setTransactions(dataArray);
+      setTransactions(Array.isArray(res.data) ? res.data : res.data.transactions || []);
     } catch (err) {
       setStatusMsg({ type: 'error', text: 'Failed to fetch transaction ledger.' });
       setTransactions([]);
     }
   };
 
-  // --- Member Lifecycle Actions ---
+  // NEW: Fetch Pending Requests
+  const fetchRequests = async () => {
+    try {
+      const res = await axios.get(`${API_ADMIN}/requests`, getAuthConfig());
+      setRequests(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      setStatusMsg({ type: 'error', text: 'Failed to fetch pending requests.' });
+      setRequests([]);
+    }
+  };
+
+  // --- Lifecycle Actions ---
   const handleToggleMembership = async (memberId, currentStatus) => {
     try {
       const endpoint = currentStatus === 'active' ? '/suspend' : '/reactivate';
       await axios.post(`${API_ADMIN}${endpoint}`, { memberId }, getAuthConfig());
       setStatusMsg({ type: 'success', text: `Member account ${currentStatus === 'active' ? 'suspended' : 'reactivated'}.` });
-      fetchMembers(); // Refresh the list
+      fetchMembers(); 
     } catch (err) {
       setStatusMsg({ type: 'error', text: err.response?.data?.message || 'Failed to update member status.' });
+    }
+  };
+
+  // NEW: Respond to Member Request
+  const handleRespondRequest = async (requestId, status) => {
+    // Prompt the admin for an optional note to send back to the member
+    const adminReply = window.prompt(`You are marking this request as ${status.toUpperCase()}.\n\nEnter an optional note for the member (e.g. "We ordered it" or "Pick it up tomorrow"):`);
+    
+    if (adminReply === null) return; // Cancelled if they hit Escape or Cancel
+
+    try {
+      await axios.post(`${API_ADMIN}/requests/${requestId}/respond`, { status, adminReply }, getAuthConfig());
+      setStatusMsg({ type: 'success', text: `Request marked as ${status}.` });
+      fetchRequests(); // Refresh the queue
+    } catch (err) {
+      setStatusMsg({ type: 'error', text: err.response?.data?.message || 'Failed to respond to request.' });
     }
   };
 
@@ -137,6 +160,47 @@ const AdminDashboard = () => {
       </div>
     );
   };
+
+  // NEW: Render Request Queue
+  const renderRequests = () => (
+    <div>
+      <div className="academia-section-header">
+        <h2>Request Queue</h2>
+        <p>Review and respond to member volume requests.</p>
+      </div>
+      {renderStatus()}
+      <div className="academia-grid">
+        {!Array.isArray(requests) || requests.length === 0 ? (
+          <p style={{ opacity: 0.6 }}><em>No pending requests in the queue.</em></p>
+        ) : (
+          requests.map(req => (
+            <Card 
+              key={req._id}
+              title={req.requestedTitle} 
+              badgeText="PENDING" 
+              badgeType="secondary"
+              actions={
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Button text="Approve" variant="success" onClick={() => handleRespondRequest(req._id, 'approved')} />
+                  <Button text="Reject" variant="danger" onClick={() => handleRespondRequest(req._id, 'rejected')} />
+                </div>
+              }
+            >
+              <div style={{ opacity: 0.8, fontSize: '14px', marginBottom: '4px' }}>
+                Author: {req.requestedAuthor || 'Unknown'}
+              </div>
+              <div style={{ opacity: 0.8, fontSize: '14px', marginBottom: '8px' }}>
+                Member: {req.memberId?.name || req.memberId?.email || 'Unknown User'}
+              </div>
+              <div style={{ opacity: 0.6, fontSize: '11px' }}>
+                Submitted: {new Date(req.createdAt).toLocaleString()}
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
 
   const renderInventory = () => (
     <div>
@@ -301,6 +365,10 @@ const AdminDashboard = () => {
       <nav className="academia-sidebar">
         <div className="academia-sidebar-brand">Archivist Hub</div>
         
+        {/* NEW: Requests tab placed prominently */}
+        <button className={`academia-nav-btn ${activeTab === 'requests' ? 'academia-nav-active' : ''}`} onClick={() => setActiveTab('requests')}>
+          Pending Requests
+        </button>
         <button className={`academia-nav-btn ${activeTab === 'inventory' ? 'academia-nav-active' : ''}`} onClick={() => setActiveTab('inventory')}>
           Existing Volumes
         </button>
@@ -331,6 +399,7 @@ const AdminDashboard = () => {
       </nav>
 
       <main className="academia-content">
+        {activeTab === 'requests' && renderRequests()}
         {activeTab === 'inventory' && renderInventory()}
         {activeTab === 'members' && renderMembers()}
         {activeTab === 'transactions' && renderTransactions()}

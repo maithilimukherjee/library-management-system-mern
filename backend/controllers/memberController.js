@@ -12,8 +12,22 @@ export const requestBook = async (req, res) => {
             return res.status(400).json({ message: "Book title is required." });
         }
 
-        // Assuming your 'protect' middleware attaches the logged-in user to req.user
-        const memberId = req.user._id; 
+        // Let's log what the middleware is actually giving us
+        console.log("Decoded User from token:", req.user); 
+
+        // Add fallbacks just in case your token uses 'id' instead of '_id', 
+        // or if your middleware attaches 'req.member' instead of 'req.user'
+        const userObj = req.user || req.member;
+        
+        if (!userObj) {
+             return res.status(401).json({ message: "Not authorized. User data missing from token." });
+        }
+
+        const memberId = userObj._id || userObj.id; 
+
+        if (!memberId) {
+             return res.status(400).json({ message: "Could not extract member ID from token." });
+        }
 
         const newRequest = await BookRequest.create({
             memberId,
@@ -26,6 +40,7 @@ export const requestBook = async (req, res) => {
             request: newRequest
         });
     } catch (error) {
+        console.error("Request Error:", error);
         return res.status(500).json({ message: error.message });
     }
 };
