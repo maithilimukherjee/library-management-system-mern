@@ -1,5 +1,5 @@
+// controllers/memberController.js
 import BookRequest from "../models/BookRequest.js";
-import Member from "../models/Member.js"; // IMPORT YOUR MEMBER MODEL HERE
 
 // @desc    Submit a new book request
 // @route   POST /api/members/request
@@ -12,19 +12,25 @@ export const requestBook = async (req, res) => {
             return res.status(400).json({ message: "Book title is required." });
         }
 
-        // 1. Get the email from the logged-in user (attached by your protect middleware)
-        const userEmail = req.user.email; 
-        
-        // 2. Find the actual Member profile that belongs to this email
-        const member = await Member.findOne({ email: userEmail });
+        // Let's log what the middleware is actually giving us
+        console.log("Decoded User from token:", req.user); 
 
-        if (!member) {
-             return res.status(404).json({ message: "Library member profile not found for this account." });
+        // Add fallbacks just in case your token uses 'id' instead of '_id', 
+        // or if your middleware attaches 'req.member' instead of 'req.user'
+        const userObj = req.user || req.member;
+        
+        if (!userObj) {
+             return res.status(401).json({ message: "Not authorized. User data missing from token." });
         }
 
-        // 3. Create the request using the actual Member's _id
+        const memberId = userObj._id || userObj.id; 
+
+        if (!memberId) {
+             return res.status(400).json({ message: "Could not extract member ID from token." });
+        }
+
         const newRequest = await BookRequest.create({
-            memberId: member._id,
+            memberId,
             requestedTitle,
             requestedAuthor
         });
@@ -34,6 +40,7 @@ export const requestBook = async (req, res) => {
             request: newRequest
         });
     } catch (error) {
+        console.error("Request Error:", error);
         return res.status(500).json({ message: error.message });
     }
 };
@@ -43,18 +50,10 @@ export const requestBook = async (req, res) => {
 // @access  Protected (Members only)
 export const getMyRequests = async (req, res) => {
     try {
-        const userEmail = req.user.email;
-
-        // Find the member profile first
-        const member = await Member.findOne({ email: userEmail });
-
-        if (!member) {
-             // If they don't have a member profile, they obviously have no requests
-             return res.status(200).json([]); 
-        }
-
-        // Fetch requests using the Member ID and sort by newest first
-        const myRequests = await BookRequest.find({ memberId: member._id }).sort({ createdAt: -1 });
+        const memberId = req.user._id;
+        
+        // Fetch requests and sort by newest first
+        const myRequests = await BookRequest.find({ memberId }).sort({ createdAt: -1 });
 
         return res.status(200).json(myRequests);
     } catch (error) {
