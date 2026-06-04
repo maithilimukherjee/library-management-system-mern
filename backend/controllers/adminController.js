@@ -10,6 +10,7 @@ import BookRequest from "../models/BookRequest.js";
 // ==========================================
 
 // --- GET ALL MEMBERS ---
+
 export const getAllMembers = async (req, res) => {
     try {
         const members = await Member.find({});
@@ -203,9 +204,11 @@ export const getPendingRequests = async (req, res) => {
 // @desc    Respond to a book request
 // @route   POST /api/admin/requests/:id/respond
 // @access  Protected (Admin only)
+
 export const respondToRequest = async (req, res) => {
     try {
-        const { status, adminReply } = req.body;
+        // Added bookId to the destructuring
+        const { status, adminReply, bookId } = req.body;
         const requestId = req.params.id;
 
         if (!["approved", "rejected"].includes(status)) {
@@ -217,12 +220,33 @@ export const respondToRequest = async (req, res) => {
             return res.status(404).json({ message: "Request ticket not found." });
         }
 
+        // Logic for APPROVED requests
+        if (status === "approved") {
+            if (!bookId) {
+                return res.status(400).json({ message: "Book ID is required to approve this request." });
+            }
+
+            // 1. Create the Borrowal record
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 14); // Set due date to 14 days from now
+
+            await Borrowal.create({
+                bookId: bookId,
+                memberId: request.memberId,
+                dueDate: dueDate
+            });
+
+            // 2. Mark the Book as unavailable (assuming avStatus is your boolean flag)
+            await Book.findByIdAndUpdate(bookId, { avStatus: false });
+        }
+
+        // Update the request status
         request.status = status;
         request.adminReply = adminReply || "";
         await request.save();
 
         return res.status(200).json({
-            message: `Request marked as ${status}.`,
+            message: `Request marked as ${status}. ${status === 'approved' ? 'Borrowal created and book locked.' : ''}`,
             request
         });
     } catch (error) {
